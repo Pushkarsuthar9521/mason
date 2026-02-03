@@ -1,0 +1,159 @@
+// Mason Billing Application - Database Schema
+// Using Prisma ORM with Supabase (PostgreSQL)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum MeasurementType {
+  SQFT     // Square Feet
+  RFT      // Running Feet
+  PIECE    // Per Piece / Step
+  DAY      // Per Day (labour)
+  LUMPSUM  // Lump Sum amount
+}
+
+// ============================================
+// MODELS
+// ============================================
+
+/// Material categories for grouping work (Marble, Granite, Tiles, etc.)
+model MaterialCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  defaultRate Decimal  @default(0) @db.Decimal(10, 2)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workMasters          WorkMaster[]
+  billMaterialSummaries BillMaterialSummary[]
+
+  @@map("material_categories")
+}
+
+/// Work Master - all types of work that can be billed
+model WorkMaster {
+  id                 String          @id @default(uuid())
+  name               String
+  measurementType    MeasurementType @default(SQFT)
+  requiresWidth      Boolean         @default(true)
+  materialCategoryId String
+  isActive           Boolean         @default(true)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  // Relations
+  materialCategory MaterialCategory @relation(fields: [materialCategoryId], references: [id])
+  measurements     Measurement[]
+
+  @@unique([name, materialCategoryId])
+  @@map("work_masters")
+}
+
+/// Site - customer location where work is done
+model Site {
+  id           String   @id @default(uuid())
+  customerName String
+  mobileNumber String
+  address      String
+  siteName     String?
+  date         DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  measurements Measurement[]
+  bills        Bill[]
+
+  @@map("sites")
+}
+
+/// Measurement - individual measurement entries for a site
+model Measurement {
+  id              String          @id @default(uuid())
+  siteId          String
+  workMasterId    String
+  
+  // Input dimensions
+  lengthFeet      Int             @default(0)
+  lengthInches    Int             @default(0)
+  widthFeet       Int             @default(0)
+  widthInches     Int             @default(0)
+  quantity        Int             @default(1)
+  
+  // Calculated values
+  calculatedValue Decimal         @db.Decimal(10, 2)
+  calculationType MeasurementType
+  rate            Decimal         @db.Decimal(10, 2)
+  amount          Decimal         @db.Decimal(10, 2)
+  
+  // Optional
+  remarks         String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  site       Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  workMaster WorkMaster @relation(fields: [workMasterId], references: [id])
+
+  @@map("measurements")
+}
+
+/// Bill - generated bill for a site
+model Bill {
+  id             String   @id @default(uuid())
+  siteId         String
+  billNumber     String   @unique
+  grandTotal     Decimal  @db.Decimal(10, 2)
+  discount       Decimal  @default(0) @db.Decimal(10, 2)
+  advancePayment Decimal  @default(0) @db.Decimal(10, 2)
+  balanceAmount  Decimal  @db.Decimal(10, 2)
+  billDate       DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  site              Site                  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  materialSummaries BillMaterialSummary[]
+
+  @@map("bills")
+}
+
+/// BillMaterialSummary - material-wise subtotals for a bill
+model BillMaterialSummary {
+  id                 String   @id @default(uuid())
+  billId             String
+  materialCategoryId String
+  subtotal           Decimal  @db.Decimal(10, 2)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  bill             Bill             @relation(fields: [billId], references: [id], onDelete: Cascade)
+  materialCategory MaterialCategory @relation(fields: [materialCategoryId], references: [id])
+
+  @@unique([billId, materialCategoryId])
+  @@map("bill_material_summaries")
+}
+
+/// Configuration - app-wide settings
+model Configuration {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("configurations")
+}
