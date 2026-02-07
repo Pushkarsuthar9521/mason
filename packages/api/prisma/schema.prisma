@@ -15,11 +15,11 @@ datasource db {
 // ============================================
 
 enum MeasurementType {
-  SQFT     // Square Feet
-  RFT      // Running Feet
-  PIECE    // Per Piece / Step
-  DAY      // Per Day (labour)
-  LUMPSUM  // Lump Sum amount
+  SQFT // Square Feet
+  RFT // Running Feet
+  PIECE // Per Piece / Step
+  DAY // Per Day (labour)
+  LUMPSUM // Lump Sum amount
 }
 
 // ============================================
@@ -36,7 +36,7 @@ model MaterialCategory {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  workMasters          WorkMaster[]
+  workMasters           WorkMaster[]
   billMaterialSummaries BillMaterialSummary[]
 
   @@map("material_categories")
@@ -81,27 +81,27 @@ model Site {
 
 /// Measurement - individual measurement entries for a site
 model Measurement {
-  id              String          @id @default(uuid())
-  siteId          String
-  workMasterId    String
-  
+  id           String @id @default(uuid())
+  siteId       String
+  workMasterId String
+
   // Input dimensions
-  lengthFeet      Int             @default(0)
-  lengthInches    Int             @default(0)
-  widthFeet       Int             @default(0)
-  widthInches     Int             @default(0)
-  quantity        Int             @default(1)
-  
+  lengthFeet   Int @default(0)
+  lengthInches Int @default(0)
+  widthFeet    Int @default(0)
+  widthInches  Int @default(0)
+  quantity     Int @default(1)
+
   // Calculated values
   calculatedValue Decimal         @db.Decimal(10, 2)
   calculationType MeasurementType
   rate            Decimal         @db.Decimal(10, 2)
   amount          Decimal         @db.Decimal(10, 2)
-  
+
   // Optional
-  remarks         String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  remarks   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   site       Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
