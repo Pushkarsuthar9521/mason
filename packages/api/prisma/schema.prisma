@@ -24,7 +24,7 @@ enum MeasurementType {
 
 enum UserRole {
   ADMIN // Full access, manage users, configurations
-  USER  // Standard user, manage own sites and bills
+  USER // Standard user, manage own sites and bills
 }
 
 // ============================================
@@ -36,7 +36,7 @@ model User {
   id        String   @id @default(uuid())
   username  String   @unique
   email     String   @unique
-  password  String   // Hashed with bcrypt
+  password  String // Hashed with bcrypt
   role      UserRole @default(USER)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -87,7 +87,7 @@ model WorkMaster {
 /// Site - customer location where work is done (owned by user)
 model Site {
   id           String   @id @default(uuid())
-  userId       String   // Foreign key to User
+  userId       String // Foreign key to User
   customerName String
   mobileNumber String
   address      String
@@ -139,7 +139,7 @@ model Measurement {
 /// Bill - generated bill for a site (owned by user)
 model Bill {
   id             String   @id @default(uuid())
-  userId         String   // Foreign key to User (for easier filtering across sites)
+  userId         String // Foreign key to User (for easier filtering across sites)
   siteId         String
   billNumber     String   @unique
   grandTotal     Decimal  @db.Decimal(10, 2)

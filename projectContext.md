@@ -82,16 +82,16 @@ enum UserRole {
 
 ### Models
 
-| Model                 | Description                              | Key Fields                                                                   | Owner   |
-| --------------------- | ---------------------------------------- | ---------------------------------------------------------------------------- | ------- |
-| `User`                | Application users (marble masons)        | username, email, password (hashed), role, isActive                           | System  |
-| `MaterialCategory`    | Material types (Marble, Granite, etc.)   | name, defaultRate, isActive                                                  | Shared  |
-| `WorkMaster`          | Types of work (Flooring, Skirting, etc.) | name, measurementType, requiresWidth, materialCategoryId                     | Shared  |
-| `Site`                | Customer job sites                       | userId, customerName, mobileNumber, address, siteName, date                  | User    |
-| `Measurement`         | Individual measurement entries           | lengthFeet/Inches, widthFeet/Inches, quantity, calculatedValue, rate, amount | User    |
-| `Bill`                | Generated bills for sites                | userId, siteId, billNumber, grandTotal, discount, advancePayment, balanceAmount | User |
-| `BillMaterialSummary` | Material-wise subtotals                  | billId, materialCategoryId, subtotal                                         | User    |
-| `Configuration`       | App-wide key-value settings              | key, value                                                                   | System  |
+| Model                 | Description                              | Key Fields                                                                      | Owner  |
+| --------------------- | ---------------------------------------- | ------------------------------------------------------------------------------- | ------ |
+| `User`                | Application users (marble masons)        | username, email, password (hashed), role, isActive                              | System |
+| `MaterialCategory`    | Material types (Marble, Granite, etc.)   | name, defaultRate, isActive                                                     | Shared |
+| `WorkMaster`          | Types of work (Flooring, Skirting, etc.) | name, measurementType, requiresWidth, materialCategoryId                        | Shared |
+| `Site`                | Customer job sites                       | userId, customerName, mobileNumber, address, siteName, date                     | User   |
+| `Measurement`         | Individual measurement entries           | lengthFeet/Inches, widthFeet/Inches, quantity, calculatedValue, rate, amount    | User   |
+| `Bill`                | Generated bills for sites                | userId, siteId, billNumber, grandTotal, discount, advancePayment, balanceAmount | User   |
+| `BillMaterialSummary` | Material-wise subtotals                  | billId, materialCategoryId, subtotal                                            | User   |
+| `Configuration`       | App-wide key-value settings              | key, value                                                                      | System |
 
 ### Key Relationships
 
@@ -105,13 +105,13 @@ enum UserRole {
 
 ### Data Ownership
 
-| Entity | Owner  | Query Example              |
-| ------ | ------ | -------------------------- |
-| Site   | User   | `Site.findMany({ where: { userId } })` |
-| Bill   | User   | `Bill.findMany({ where: { userId } })` |
-| Measurement | User (indirect via Site) | Get measurements by querying site's measurements |
-| MaterialCategory | Shared | Access by all users |
-| WorkMaster | Shared | Access by all users |
+| Entity           | Owner                    | Query Example                                    |
+| ---------------- | ------------------------ | ------------------------------------------------ |
+| Site             | User                     | `Site.findMany({ where: { userId } })`           |
+| Bill             | User                     | `Bill.findMany({ where: { userId } })`           |
+| Measurement      | User (indirect via Site) | Get measurements by querying site's measurements |
+| MaterialCategory | Shared                   | Access by all users                              |
+| WorkMaster       | Shared                   | Access by all users                              |
 
 ---
 
