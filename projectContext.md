@@ -1,263 +1,273 @@
-# 🪨 Marble Mason Billing Web Application – Master Build Prompt
+# 🪨 Marble Mason Billing Web Application
 
-You are a senior full-stack engineer and system architect.  
-Your task is to **design and implement a real-world marble mason billing web application** based on how marble masons actually measure and bill work on construction sites.
-
-This is NOT an academic or drawing-based calculator.  
-It must reflect **practical mason billing behavior**.
+A real-world marble mason billing web application based on how marble masons actually measure and bill work on construction sites.
 
 ---
 
-## 1️⃣ TECH STACK (MANDATORY)
+## 📁 Project Structure
 
-Use the following stack:
+```
+mason/                          # Root (pnpm monorepo)
+├── package.json                # Workspace scripts
+├── pnpm-workspace.yaml         # Workspace config
+├── packages/
+│   ├── api/                    # @mason/api - NestJS Backend
+│   │   ├── prisma/
+│   │   │   └── schema.prisma   # ✅ Complete database schema
+│   │   ├── prisma.config.ts    # Prisma config (Supabase/PostgreSQL)
+│   │   └── src/
+│   │       ├── app.module.ts   # Root NestJS module
+│   │       ├── app.controller.ts
+│   │       ├── app.service.ts
+│   │       └── main.ts
+│   └── app/                    # @mason/app - React Frontend
+│       ├── components.json     # shadcn/ui config (new-york style)
+│       ├── vite.config.ts      # Vite + Tailwind v4
+│       └── src/
+│           ├── App.tsx         # Main app (scaffold)
+│           ├── index.css       # Tailwind + CSS variables
+│           └── lib/utils.ts    # cn() utility
+```
+
+---
+
+## ✅ Implementation Status
+
+### Backend (@mason/api)
+
+| Component           | Status         | Notes                     |
+| ------------------- | -------------- | ------------------------- |
+| NestJS Setup        | ✅ Done        | v11, basic scaffold       |
+| Prisma ORM          | ✅ Done        | v7.3.0                    |
+| Database Schema     | ✅ Done        | All models defined        |
+| Prisma Config       | ✅ Done        | Supabase-ready            |
+| API Endpoints       | ❌ Not Started | CRUD for all entities     |
+| Calculation Service | ❌ Not Started | RFT/SQFT logic            |
+| Validation          | ❌ Not Started | DTOs with class-validator |
+
+### Frontend (@mason/app)
+
+| Component       | Status         | Notes                        |
+| --------------- | -------------- | ---------------------------- |
+| Vite + React 19 | ✅ Done        | TypeScript enabled           |
+| Tailwind CSS v4 | ✅ Done        | With CSS variables           |
+| shadcn/ui       | ✅ Done        | new-york style, path aliases |
+| TanStack Query  | ✅ Installed   | Not configured               |
+| React Hook Form | ✅ Installed   | Not configured               |
+| Zod             | ✅ Installed   | Not configured               |
+| UI Components   | ❌ Not Started |                              |
+| Pages/Routes    | ❌ Not Started |                              |
+| API Integration | ❌ Not Started |                              |
+
+---
+
+## 🗃️ Database Schema (Prisma)
+
+### Enums
+
+```prisma
+enum MeasurementType {
+  SQFT      // Square Feet
+  RFT       // Running Feet
+  PIECE     // Per Piece / Step
+  DAY       // Per Day (labour)
+  LUMPSUM   // Lump Sum amount
+}
+```
+
+### Models
+
+| Model                 | Description                              | Key Fields                                                                   |
+| --------------------- | ---------------------------------------- | ---------------------------------------------------------------------------- |
+| `MaterialCategory`    | Material types (Marble, Granite, etc.)   | name, defaultRate, isActive                                                  |
+| `WorkMaster`          | Types of work (Flooring, Skirting, etc.) | name, measurementType, requiresWidth, materialCategoryId                     |
+| `Site`                | Customer job sites                       | customerName, mobileNumber, address, siteName, date                          |
+| `Measurement`         | Individual measurement entries           | lengthFeet/Inches, widthFeet/Inches, quantity, calculatedValue, rate, amount |
+| `Bill`                | Generated bills for sites                | billNumber, grandTotal, discount, advancePayment, balanceAmount              |
+| `BillMaterialSummary` | Material-wise subtotals                  | billId, materialCategoryId, subtotal                                         |
+| `Configuration`       | App-wide key-value settings              | key, value                                                                   |
+
+### Key Relationships
+
+- `MaterialCategory` → `WorkMaster` (1:N)
+- `Site` → `Measurement` (1:N, cascade delete)
+- `Site` → `Bill` (1:N, cascade delete)
+- `WorkMaster` → `Measurement` (1:N)
+- `Bill` → `BillMaterialSummary` (1:N, cascade delete)
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
 
-- React
-- TypeScript
-- Tailwind CSS + shadcn(modular design)
-- React Hook Form (dynamic forms)
-- Zod (validation)
-- TanStack Query (data fetching)
+- **React 19** + TypeScript
+- **Vite 7** (dev server & bundler)
+- **Tailwind CSS v4** + tw-animate-css
+- **shadcn/ui** (new-york style, lucide icons)
+- **TanStack Query v5** (data fetching)
+- **React Hook Form v7** + @hookform/resolvers
+- **Zod v4** (validation)
+- **radix-ui** (primitives)
 
 ### Backend
 
-- Node.js
-- NestJS
-- Prisma ORM
+- **NestJS v11** (Node.js framework)
+- **Prisma v7.3.0** (ORM)
+- **PostgreSQL** (via Supabase)
 
-### Database
+### Tooling
 
-- PostgreSQL
-
-### Architecture
-
-- Frontend performs live calculations for UX
-- Backend is the final authority for validation, totals, and storage
-- Use REST APIs
-- Clean modular architecture
+- **pnpm** (package manager + workspaces)
+- **ESLint 9** + Prettier
+- **Jest** (testing)
 
 ---
 
-## 2️⃣ CORE CONCEPT
+## 📜 Scripts
 
-The application is **site-based**.
+### Root Commands
 
-- A **Site** = one customer location
-- Each site contains multiple **measurement entries**
-- Measurements auto-calculate
-- Work is grouped **material-wise**
-- Rates are auto-applied but editable
-- Final bill is generated automatically
+```bash
+pnpm dev              # Run both api and app in parallel
+pnpm dev:app          # Run frontend only
+pnpm dev:api          # Run backend only
+pnpm build            # Build all packages
+pnpm prisma:generate  # Generate Prisma client
+pnpm prisma:migrate   # Run migrations
+pnpm prisma:studio    # Open Prisma Studio
+```
 
----
+### API Package
 
-## 3️⃣ WORK & MEASUREMENT MASTER (CRUD REQUIRED)
+```bash
+pnpm start:dev        # Development mode with watch
+pnpm build            # Production build
+pnpm test             # Run tests
+```
 
-Create a **Work Master** used during measurement entry.
+### App Package
 
-### Default Work List
-
-- Flooring — Square Feet (sq.ft)
-- Wall Cladding / Wall Tiles — Square Feet (sq.ft)
-- Skirting — Running Feet (RFT) + Width
-- Border / Patti / Strip — Running Feet (RFT) + Width
-- Kitchen Platform / Countertop — RFT or Square Feet
-- Staircase Steps — Per Step / Square Feet / RFT
-- Stair Edges / Side Patti — RFT + Width
-- Window Sill — RFT + Width
-- Door Threshold (Marble Patti) — RFT + Width
-- Slab Work (Big Pieces) — Per Piece or Square Feet
-- Polishing — Square Feet or Lump Sum
-- Repair / Replacement — Per Piece or Lump Sum
-- Cutting / Design Work — Per Cut or Lump Sum
-- Material Supply — Square Feet / Per Bag / Lump Sum
-- Labour (Daily Wage) — Per Day
-
-### Work Master Requirements
-
-- Full CRUD (Create, Read, Update, Delete)
-- Each work stores:
-  - Name
-  - Default measurement type
-  - Whether width is required
-  - Material category (Marble, Granite, Tiles, Stone, etc.)
-  - Active / inactive status
-- Changes must reflect immediately in measurement entry
+```bash
+pnpm dev              # Vite dev server
+pnpm build            # Production build
+pnpm preview          # Preview production build
+```
 
 ---
 
-## 4️⃣ SITE CREATION WORKFLOW
+## 🎯 Core Business Logic
 
-User must create a site before entering measurements.
+### RFT vs Square Feet Decision Rule
 
-### Site Fields
-
-- Customer Name
-- Mobile Number
-- Site Location / Address
-- Optional Site Name
-- Date (auto, editable)
-
----
-
-## 5️⃣ MEASUREMENT ENTRY WORKFLOW
-
-### Step 1: Select Work
-
-- User selects a work from the Work Master
-- System auto-fetches:
-  - Measurement type
-  - Width requirement
-  - Material category
-
-### Step 2: Dynamic Form
-
-Show fields dynamically based on measurement type.
-
-Inputs:
-
-- Length (feet + inches)
-- Width (feet + inches) if required
-- Quantity (default = 1)
-- Optional remarks
-
-Users must **never manually calculate totals**.
-
----
-
-## 6️⃣ RFT vs SQUARE FEET DECISION RULE (CRITICAL)
-
-All measurements are entered as length and width.
-
-### Rule
+All measurements are entered as length and width:
 
 - If **width < 1 foot (12 inches)** → treat as **Running Feet (RFT)**
 - If **width ≥ 1 foot** → treat as **Square Feet (sq.ft)**
 
-This rule must be enforced everywhere.
+### Calculation Formulas
 
----
-
-## 7️⃣ CALCULATION LOGIC (MANDATORY)
-
-### Unit Conversion
-
+```typescript
+// Unit conversion
 decimalFeet = feet + (inches / 12)
 
-### RFT Calculation
+// RFT (when width < 1 ft)
+RFT = Length × Quantity
 
-When width < 1 ft:
-
-RFT = Length × 1 × Quantity
-
-Example:
-
-- 12 ft 6 in × 0 ft 8 in
-- Quantity = 1
-- Result = 12.5 RFT
-
-Width is used only to decide calculation type, not multiplied.
-
-### Square Feet Calculation
-
-When width ≥ 1 ft:
-
+// Square Feet (when width ≥ 1 ft)
 Area = Length × Width × Quantity
 
-### Other Types
+// Other types
+PIECE → Quantity
+DAY → Days
+LUMPSUM → Direct amount
+```
 
-- Per Piece / Step → Quantity
-- Per Day → Days
-- Lump Sum → Direct amount
+### Example Calculation
 
----
-
-## 8️⃣ MATERIAL-WISE GROUPING
-
-Each work belongs to a material category.
-
-System must:
-
-- Group entries by material
-- Display sections:
-  - Marble
-  - Granite
-  - Tiles
-  - Stone
-- Allow expand / collapse
-- Calculate subtotal per material
+- Input: 12 ft 6 in × 0 ft 8 in, Quantity = 1
+- Width = 8 inches < 12 inches → RFT
+- Result = 12.5 RFT (width not multiplied)
 
 ---
 
-## 9️⃣ RATE APPLICATION
+## 🔧 Configuration
 
-- Each material has a default rate (from config)
-- Rate is auto-applied
-- User can override rate
-- Totals update in real time
+### Path Aliases
 
-Rates apply based on:
+- Frontend: `@/*` → `./src/*`
 
-- RFT
-- Square Feet
-- Piece
-- Day
-- Lump Sum
+### shadcn/ui Aliases
 
----
+```json
+{
+  "components": "@/components",
+  "ui": "@/components/ui",
+  "lib": "@/lib",
+  "hooks": "@/hooks",
+  "utils": "@/lib/utils"
+}
+```
 
-## 🔟 BILL SUMMARY
+### Environment Variables (API)
 
-Calculate:
-
-- Material-wise subtotal
-- Grand total
-
-Optional:
-
-- Discount
-- Advance payment
-- Balance amount
-
-All values must recalculate instantly.
+```env
+DATABASE_URL=       # Pooled connection (for app)
+DIRECT_URL=         # Direct connection (for migrations)
+```
 
 ---
 
-## 1️⃣1️⃣ CONFIGURATION LAYER
+## 📋 Next Steps (TODO)
 
-Admin settings must allow:
+### Backend
 
-- Default rates per material
-- Default widths (3″, 4″, 6″)
-- Enable / disable work items
-- Edit work master list (CRUD)
+1. [ ] Create Prisma migrations and seed data
+2. [ ] Implement NestJS modules: MaterialCategory, WorkMaster, Site, Measurement, Bill, Configuration
+3. [ ] Create DTOs with class-validator
+4. [ ] Implement calculation service (RFT/SQFT logic)
+5. [ ] Add CORS configuration
+6. [ ] Add API documentation (Swagger)
+
+### Frontend
+
+1. [ ] Set up React Router
+2. [ ] Configure TanStack Query provider
+3. [ ] Add shadcn/ui components (Button, Input, Form, Card, etc.)
+4. [ ] Create pages: Dashboard, Sites, Measurements, Bills, Settings
+5. [ ] Implement forms with React Hook Form + Zod
+6. [ ] Build calculation preview component
+7. [ ] Add responsive/mobile-friendly layout
 
 ---
 
-## 1️⃣2️⃣ OUTPUT EXPECTATIONS
+## 📐 Default Work Types
 
-Provide:
-
-- Database schema (PostgreSQL)
-- Prisma models
-- API endpoints
-- Calculation functions
-- Frontend flow
-- Example calculations
+| Work Type                     | Measurement   | Width Required |
+| ----------------------------- | ------------- | -------------- |
+| Flooring                      | SQFT          | Yes            |
+| Wall Cladding / Wall Tiles    | SQFT          | Yes            |
+| Skirting                      | RFT           | Yes            |
+| Border / Patti / Strip        | RFT           | Yes            |
+| Kitchen Platform / Countertop | RFT/SQFT      | Yes            |
+| Staircase Steps               | PIECE/SQFT    | Optional       |
+| Stair Edges / Side Patti      | RFT           | Yes            |
+| Window Sill                   | RFT           | Yes            |
+| Door Threshold                | RFT           | Yes            |
+| Slab Work                     | PIECE/SQFT    | Optional       |
+| Polishing                     | SQFT/LUMPSUM  | Optional       |
+| Repair / Replacement          | PIECE/LUMPSUM | No             |
+| Cutting / Design Work         | PIECE/LUMPSUM | No             |
+| Material Supply               | SQFT/LUMPSUM  | No             |
+| Labour (Daily Wage)           | DAY           | No             |
 
 ---
 
-## 1️⃣3️⃣ DESIGN PRINCIPLES
+## 🎨 Design Principles
 
 - Built for real construction workers
-- Minimal typing
-- No manual math
-- Accurate billing
+- Minimal typing required
+- No manual math needed
+- Accurate billing calculations
 - Highly configurable
-- Mobile-friendly
-
----
-
-## END OF PROMPT
+- Mobile-friendly interface
