@@ -41,7 +41,7 @@ mason/                          # Root (pnpm monorepo)
 | Prisma ORM          | ✅ Done        | v7.3.0                    |
 | Database Schema     | ✅ Done        | All models defined        |
 | Prisma Config       | ✅ Done        | Supabase-ready            |
-| API Endpoints       | ❌ Not Started | CRUD for all entities     |
+| User Model          | ✅ Done        | Auth & role management    |
 | Calculation Service | ❌ Not Started | RFT/SQFT logic            |
 | Validation          | ❌ Not Started | DTOs with class-validator |
 
@@ -73,27 +73,45 @@ enum MeasurementType {
   DAY       // Per Day (labour)
   LUMPSUM   // Lump Sum amount
 }
+
+enum UserRole {
+  ADMIN     // Full access, manage users, configurations
+  USER      // Standard user, manage own sites and bills
+}
 ```
 
 ### Models
 
-| Model                 | Description                              | Key Fields                                                                   |
-| --------------------- | ---------------------------------------- | ---------------------------------------------------------------------------- |
-| `MaterialCategory`    | Material types (Marble, Granite, etc.)   | name, defaultRate, isActive                                                  |
-| `WorkMaster`          | Types of work (Flooring, Skirting, etc.) | name, measurementType, requiresWidth, materialCategoryId                     |
-| `Site`                | Customer job sites                       | customerName, mobileNumber, address, siteName, date                          |
-| `Measurement`         | Individual measurement entries           | lengthFeet/Inches, widthFeet/Inches, quantity, calculatedValue, rate, amount |
-| `Bill`                | Generated bills for sites                | billNumber, grandTotal, discount, advancePayment, balanceAmount              |
-| `BillMaterialSummary` | Material-wise subtotals                  | billId, materialCategoryId, subtotal                                         |
-| `Configuration`       | App-wide key-value settings              | key, value                                                                   |
+| Model                 | Description                              | Key Fields                                                                   | Owner   |
+| --------------------- | ---------------------------------------- | ---------------------------------------------------------------------------- | ------- |
+| `User`                | Application users (marble masons)        | username, email, password (hashed), role, isActive                           | System  |
+| `MaterialCategory`    | Material types (Marble, Granite, etc.)   | name, defaultRate, isActive                                                  | Shared  |
+| `WorkMaster`          | Types of work (Flooring, Skirting, etc.) | name, measurementType, requiresWidth, materialCategoryId                     | Shared  |
+| `Site`                | Customer job sites                       | userId, customerName, mobileNumber, address, siteName, date                  | User    |
+| `Measurement`         | Individual measurement entries           | lengthFeet/Inches, widthFeet/Inches, quantity, calculatedValue, rate, amount | User    |
+| `Bill`                | Generated bills for sites                | userId, siteId, billNumber, grandTotal, discount, advancePayment, balanceAmount | User |
+| `BillMaterialSummary` | Material-wise subtotals                  | billId, materialCategoryId, subtotal                                         | User    |
+| `Configuration`       | App-wide key-value settings              | key, value                                                                   | System  |
 
 ### Key Relationships
 
+- `User` → `Site` (1:N, cascade delete)
+- `User` → `Bill` (1:N, cascade delete)
 - `MaterialCategory` → `WorkMaster` (1:N)
 - `Site` → `Measurement` (1:N, cascade delete)
 - `Site` → `Bill` (1:N, cascade delete)
 - `WorkMaster` → `Measurement` (1:N)
 - `Bill` → `BillMaterialSummary` (1:N, cascade delete)
+
+### Data Ownership
+
+| Entity | Owner  | Query Example              |
+| ------ | ------ | -------------------------- |
+| Site   | User   | `Site.findMany({ where: { userId } })` |
+| Bill   | User   | `Bill.findMany({ where: { userId } })` |
+| Measurement | User (indirect via Site) | Get measurements by querying site's measurements |
+| MaterialCategory | Shared | Access by all users |
+| WorkMaster | Shared | Access by all users |
 
 ---
 
@@ -115,6 +133,9 @@ enum MeasurementType {
 - **NestJS v11** (Node.js framework)
 - **Prisma v7.3.0** (ORM)
 - **PostgreSQL** (via Supabase)
+- **JWT** (authentication)
+- **Passport** (auth strategy)
+- **bcrypt** (password hashing)
 
 ### Tooling
 
@@ -214,6 +235,7 @@ LUMPSUM → Direct amount
 ```env
 DATABASE_URL=       # Pooled connection (for app)
 DIRECT_URL=         # Direct connection (for migrations)
+JWT_SECRET=         # Secret key for JWT token signing
 ```
 
 ---
@@ -222,22 +244,28 @@ DIRECT_URL=         # Direct connection (for migrations)
 
 ### Backend
 
-1. [ ] Create Prisma migrations and seed data
-2. [ ] Implement NestJS modules: MaterialCategory, WorkMaster, Site, Measurement, Bill, Configuration
-3. [ ] Create DTOs with class-validator
-4. [ ] Implement calculation service (RFT/SQFT logic)
-5. [ ] Add CORS configuration
-6. [ ] Add API documentation (Swagger)
+1. [ ] Install JWT and Passport packages
+2. [ ] Implement authentication (JWT + bcrypt)
+3. [ ] Create Prisma migrations and seed data
+4. [ ] Implement NestJS modules: User, Auth, MaterialCategory, WorkMaster, Site, Measurement, Bill, Configuration
+5. [ ] Create DTOs with class-validator
+6. [ ] Implement role-based access control (RBAC)
+7. [ ] Implement calculation service (RFT/SQFT logic)
+8. [ ] Add CORS configuration
+9. [ ] Add API documentation (Swagger)
+10. [ ] Implement data isolation (users can only access own sites/bills)
 
 ### Frontend
 
 1. [ ] Set up React Router
 2. [ ] Configure TanStack Query provider
 3. [ ] Add shadcn/ui components (Button, Input, Form, Card, etc.)
-4. [ ] Create pages: Dashboard, Sites, Measurements, Bills, Settings
-5. [ ] Implement forms with React Hook Form + Zod
-6. [ ] Build calculation preview component
-7. [ ] Add responsive/mobile-friendly layout
+4. [ ] Create authentication pages (Login, Register)
+5. [ ] Create pages: Dashboard, Sites, Measurements, Bills, Settings
+6. [ ] Implement forms with React Hook Form + Zod
+7. [ ] Build calculation preview component
+8. [ ] Add responsive/mobile-friendly layout
+9. [ ] Implement token storage & refresh
 
 ---
 
