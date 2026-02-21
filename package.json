@@ -16,6 +16,9 @@
     "prisma:migrate": "pnpm --filter @mason/api exec prisma migrate dev",
     "prisma:studio": "pnpm --filter @mason/api exec prisma studio"
   },
+  "devDependencies": {
+    "@typescript/native-preview": "7.0.0-dev.20260217.1"
+  },
   "keywords": [
     "marble",
     "mason",

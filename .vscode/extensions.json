@@ -1,0 +1,14 @@
+{
+  "recommendations": [
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "golang.go",
+    "GraphQL.vscode-graphql-syntax",
+    "hashicorp.terraform",
+    "TypeScriptTeam.native-preview",
+    "usernamehw.errorlens",
+    "YoavBls.pretty-ts-errors"
+  ]
+}
